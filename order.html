@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Order</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f7f7f7;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            display: flex;
+            max-width: 1200px;
+            width: 100%;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .left-container, .right-container {
+            padding: 20px;
+            flex: 1;
+        }
+        .left-container {
+            border-right: 2px solid #e0e0e0;
+        }
+        .button-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .button-container button {
+            padding: 12px 25px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background-color: #3498db;
+            color: white;
+            font-size: 16px;
+        }
+        .button-container button:hover {
+            background-color: #2980b9;
+        }
+        .items-container {
+            display: none;
+            margin-bottom: 20px;
+        }
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 15px;
+            border: 1px solid #dcdcdc;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        .item span {
+            flex: 1;
+        }
+        .item button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background-color: #27ae60;
+            color: white;
+            font-size: 14px;
+        }
+        .item button:hover {
+            background-color: #2ecc71;
+        }
+        .right-container h2 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        .order-summary .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .order-summary .order-item span {
+            flex: 1;
+        }
+        .total {
+            font-weight: bold;
+            margin-top: 15px;
+            color: #e74c3c;
+        }
+        .form-container {
+            display: flex;
+            flex-direction: column;
+            margin-top: 20px;
+        }
+        .form-container label {
+            margin: 10px 0 5px;
+            text-align: left;
+            color: #2c3e50;
+        }
+        .form-container input {
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #dcdcdc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        .form-container button {
+            padding: 12px;
+            background-color: #e67e22;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .form-container button:hover {
+            background-color: #d35400;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="left-container">
+            <div class="button-container">
+                <button onclick="showItems('pizza')">Pizza</button>
+                <button onclick="showItems('burger')">Burger</button>
+                <button onclick="showItems('drinks')">Drinks</button>
+                <button onclick="showItems('sandwich')">Sandwich</button>
+            </div>
+            <div id="itemsContainer" class="items-container"></div>
+        </div>
+        <div class="right-container">
+            <div id="orderSummary" class="order-summary">
+                <h2>Added for Order</h2>
+                <div id="orderItems"></div>
+                <div class="total">Total: $<span id="totalAmount">0.00</span></div>
+                <div class="form-container">
+                    <label for="orderName">Name:</label>
+                    <input type="text" id="orderName" name="orderName" required>
+                    <label for="orderMobile">Mobile Number:</label>
+                    <input type="tel" id="orderMobile" name="orderMobile" required>
+                    <label for="orderAddress">Address:</label>
+                    <input type="text" id="orderAddress" name="orderAddress" required>
+                    <button onclick="placeOrder()">Place Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+       const items = {
+            pizza: [
+                { name: 'Margherita', price: 10.00 },
+                { name: 'Pepperoni', price: 12.00 },
+                { name: 'BBQ Chicken', price: 14.00 },
+            ],
+            burger: [
+                { name: 'Cheeseburger', price: 8.00 },
+                { name: 'Bacon Burger', price: 9.00 },
+                { name: 'Veggie Burger', price: 7.00 },
+            ],
+            drinks: [
+                { name: 'Coke', price: 2.00 },
+                { name: 'Pepsi', price: 2.00 },
+                { name: 'Lemonade', price: 3.00 },
+            ],
+            sandwich: [
+                { name: 'Ham Sandwich', price: 6.00 },
+                { name: 'Turkey Sandwich', price: 7.00 },
+                { name: 'Veggie Sandwich', price: 5.00 },
+            ]
+        };
+
+        let order = [];
+        let totalAmount = 0;
+
+        function showItems(category) {
+            const itemsContainer = document.getElementById('itemsContainer');
+            itemsContainer.innerHTML = '';
+            itemsContainer.style.display = 'block';
+
+            items[category].forEach(item => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'item';
+                itemDiv.innerHTML = `
+                    <span>${item.name}</span>
+                    <span>$${item.price.toFixed(2)}</span>
+                    <button onclick="addToOrder('${item.name}', ${item.price})">Add</button>
+                `;
+                itemsContainer.appendChild(itemDiv);
+            });
+        }
+
+        function addToOrder(name, price) {
+            let existingItem = order.find(item => item.name === name);
+
+            if (existingItem) {
+                existingItem.count++;
+                existingItem.totalPrice = existingItem.count * price;
+                totalAmount += price;
+            } else {
+                order.push({ name, price, count: 1, totalPrice: price });
+                totalAmount += price;
+            }
+
+            updateOrderSummary();
+        }
+
+        function updateOrderSummary() {
+            const orderItems = document.getElementById('orderItems');
+            orderItems.innerHTML = '';
+
+            order.forEach(item => {
+                const orderItemDiv = document.createElement('div');
+                orderItemDiv.className = 'order-item';
+                orderItemDiv.innerHTML = `
+                    <span>${item.name} (${item.count})</span>
+                    <span>$${item.totalPrice.toFixed(2)}</span>
+                `;
+                orderItems.appendChild(orderItemDiv);
+            });
+
+            document.getElementById('totalAmount').innerText = totalAmount.toFixed(2);
+            document.getElementById('orderSummary').style.display = 'block';
+        }
+
+        function placeOrder() {
+            const name = document.getElementById('orderName').value;
+            const mobile = document.getElementById('orderMobile').value;
+            const address = document.getElementById('orderAddress').value;
+
+            if (!name || !mobile || !address) {
+                alert('Please fill in all the details');
+                return;
+            }
+
+            // Here you can add your logic to actually send the order to the restaurant's ordering system
+
+            alert(`Order placed successfully!\n\nName: ${name}\nMobile: ${mobile}\nAddress: ${address}\nTotal Amount: $${totalAmount.toFixed(2)}`);
+        }
+    </script>
